@@ -37,9 +37,13 @@ type GUI struct {
 	discardButton         *widget.Clickable
 	nickname              *widget.Editor
 	profileDescription    *widget.Editor
+	showLeftTable         bool
 	showTables            bool
 	showPersonalization   bool
 	showStartMenu         bool
+	leftTableButtons      [][]*widget.Clickable
+	leftTableLabels       [][]string
+	leftTableStates       [][]int
 }
 
 func NewGUI() *GUI {
@@ -52,13 +56,21 @@ func NewGUI() *GUI {
 		discardButton:         new(widget.Clickable),
 		nickname:              new(widget.Editor),
 		profileDescription:    new(widget.Editor),
+		showLeftTable:         false,
 		showTables:            false,
 		showPersonalization:   false,
 		showStartMenu:         true,
 	}
-
+	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	return gui
 }
+
+const (
+	Empty = iota
+	Ship
+	Hit
+	Miss
+)
 
 type (
 	C = layout.Context
@@ -68,6 +80,7 @@ type (
 func loop(w *app.Window, g *GUI) error {
 	th := material.NewTheme()
 	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+
 	var ops op.Ops
 
 	for {
@@ -272,6 +285,9 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 		return startMenu(gtx, g)
 	}
 	if g.showPersonalization {
+		return personalizationMenu(gtx, g)
+	}
+	if g.showLeftTable {
 		return personalizationMenu(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
