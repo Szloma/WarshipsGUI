@@ -29,21 +29,23 @@ func main() {
 }
 
 type GUI struct {
-	theme                 *material.Theme
-	startButton           *widget.Clickable
-	exitButton            *widget.Clickable
-	personalizationButton *widget.Clickable
-	acceptButton          *widget.Clickable
-	discardButton         *widget.Clickable
-	nickname              *widget.Editor
-	profileDescription    *widget.Editor
-	showLeftTable         bool
-	showTables            bool
-	showPersonalization   bool
-	showStartMenu         bool
-	leftTableButtons      [][]*widget.Clickable
-	leftTableLabels       [][]string
-	leftTableStates       [][]int
+	theme                     *material.Theme
+	startButton               *widget.Clickable
+	exitButton                *widget.Clickable
+	personalizationButton     *widget.Clickable
+	acceptButton              *widget.Clickable
+	discardButton             *widget.Clickable
+	nickname                  *widget.Editor
+	profileDescription        *widget.Editor
+	showLeftTable             bool
+	showTables                bool
+	showPersonalization       bool
+	showStartMenu             bool
+	selectionIndicatorButtons []*widget.Clickable
+	leftTableButtons          [][]*widget.Clickable
+	leftShip                  int
+	leftTableLabels           [][]string
+	leftTableStates           [][]int
 }
 
 func NewGUI() *GUI {
@@ -56,12 +58,14 @@ func NewGUI() *GUI {
 		discardButton:         new(widget.Clickable),
 		nickname:              new(widget.Editor),
 		profileDescription:    new(widget.Editor),
+		leftShip:              20,
 		showLeftTable:         false,
 		showTables:            false,
 		showPersonalization:   false,
 		showStartMenu:         true,
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
+	gui.selectionIndicatorButtons = createButtonRow()
 	return gui
 }
 
@@ -76,6 +80,16 @@ type (
 	C = layout.Context
 	D = layout.Dimensions
 )
+
+func handleTableClicks(gtx layout.Context, buttons [][]*widget.Clickable, labels [][]string, states [][]int) {
+	for i := range buttons {
+		for y, btn := range buttons[i] {
+			for btn.Clicked(gtx) {
+				fmt.Printf("%s: %d\n", labels[i][y], states[i][y])
+			}
+		}
+	}
+}
 
 func loop(w *app.Window, g *GUI) error {
 	th := material.NewTheme()
@@ -112,6 +126,10 @@ func loop(w *app.Window, g *GUI) error {
 			}
 			if g.exitButton.Clicked(gtx) {
 				os.Exit(0)
+			}
+
+			if g.showLeftTable {
+				handleTableClicks(gtx, g.leftTableButtons, g.leftTableLabels, g.leftTableStates)
 			}
 
 			Layout(gtx, g)
@@ -302,6 +320,11 @@ func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 				return title.Layout(gtx)
 			})
 		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, slimButtonRow(g.selectionIndicatorButtons, g.theme)...)
+		}),
+
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
 		}),

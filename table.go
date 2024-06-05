@@ -10,6 +10,14 @@ import (
 	"gioui.org/widget/material"
 )
 
+func createButtonRow() []*widget.Clickable {
+	buttons := make([]*widget.Clickable, 20)
+	for i := range buttons {
+		buttons[i] = new(widget.Clickable)
+	}
+	return buttons
+}
+
 func createTable() ([][]*widget.Clickable, [][]string, [][]int) {
 	buttons := make([][]*widget.Clickable, 10)
 	labels := make([][]string, 10)
@@ -37,6 +45,29 @@ func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]
 	}
 	return children
 }
+
+func slimButtonRow(buttons []*widget.Clickable, th *material.Theme) []layout.FlexChild {
+	var children []layout.FlexChild
+	for btn := range buttons {
+		btn := btn
+		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			size := unit.Dp(20)
+
+			btnWidget := material.Button(th, buttons[btn], "")
+
+			btnWidget.Inset = layout.UniformInset(unit.Dp(5))
+			return layout.UniformInset(unit.Dp(1)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Min.X = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Max.X = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Min.Y = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Max.Y = int(gtx.Metric.DpToSp(size))
+				return btnWidget.Layout(gtx)
+			})
+		}))
+	}
+	return children
+}
+
 func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *material.Theme) []layout.FlexChild {
 	var children []layout.FlexChild
 	for j, btn := range buttons {
@@ -52,9 +83,9 @@ func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *m
 			switch states[j] {
 			case Empty:
 				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 255, A: 255}
+
 			case Ship:
 				btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
-
 			}
 			btnWidget.Inset = layout.UniformInset(unit.Dp(5))
 			return layout.UniformInset(unit.Dp(1)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
