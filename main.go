@@ -41,6 +41,7 @@ type GUI struct {
 	showTables                bool
 	showPersonalization       bool
 	showStartMenu             bool
+	selectionIincidatorState  [20]int
 	selectionIndicatorButtons []*widget.Clickable
 	leftTableButtons          [][]*widget.Clickable
 	leftShip                  int
@@ -66,6 +67,8 @@ func NewGUI() *GUI {
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
+	gui.selectionIincidatorState = setSelectionIincidatorState(gui.leftShip)
+
 	return gui
 }
 
@@ -324,7 +327,7 @@ func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 		}),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, slimButtonRow(g.selectionIndicatorButtons, g.theme)...)
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, slimButtonRow(g.selectionIndicatorButtons, g.theme, g.selectionIincidatorState)...)
 		}),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

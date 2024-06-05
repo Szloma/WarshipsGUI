@@ -10,6 +10,18 @@ import (
 	"gioui.org/widget/material"
 )
 
+func setSelectionIincidatorState(n int) [20]int {
+	var arr [20]int
+
+	for i := 0; i < 20; i++ {
+		arr[i] = 1
+	}
+	for i := 0; i < n; i++ {
+		arr[i] = 0
+	}
+	return arr
+}
+
 func createButtonRow() []*widget.Clickable {
 	buttons := make([]*widget.Clickable, 20)
 	for i := range buttons {
@@ -46,15 +58,28 @@ func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]
 	return children
 }
 
-func slimButtonRow(buttons []*widget.Clickable, th *material.Theme) []layout.FlexChild {
+func slimButtonRow(buttons []*widget.Clickable, th *material.Theme, states [20]int) []layout.FlexChild {
 	var children []layout.FlexChild
+	index := 0
 	for btn := range buttons {
 		btn := btn
 		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			size := unit.Dp(20)
 
 			btnWidget := material.Button(th, buttons[btn], "")
+			switch states[index] {
+			case Empty:
+				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 255, A: 255}
 
+			case Ship:
+				btnWidget.Background = color.NRGBA{R: 100, G: 0, B: 0, A: 255}
+			case Hit:
+				btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+
+			case Miss:
+				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+			}
+			index += 1
 			btnWidget.Inset = layout.UniformInset(unit.Dp(5))
 			return layout.UniformInset(unit.Dp(1)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Min.X = int(gtx.Metric.DpToSp(size))
