@@ -91,6 +91,7 @@ func loop(w *app.Window, g *GUI) error {
 			gtx := app.NewContext(&ops, e)
 			if g.startButton.Clicked(gtx) {
 				g.showStartMenu = false
+				g.showLeftTable = true
 				fmt.Println("test")
 			}
 			if g.personalizationButton.Clicked(gtx) {
@@ -115,11 +116,6 @@ func loop(w *app.Window, g *GUI) error {
 
 			Layout(gtx, g)
 
-			l := material.H1(th, "Gigawarships")
-			maroon := color.NRGBA{R: 127, G: 0, B: 0, A: 255}
-			l.Color = maroon
-			l.Alignment = text.Middle
-			l.Layout(gtx)
 			e.Frame(gtx.Ops)
 		}
 	}
@@ -130,6 +126,14 @@ func startMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 		Axis:    layout.Vertical,
 		Spacing: layout.SpaceStart,
 	}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				title := material.H1(g.theme, "Gigawarships")
+				title.Alignment = text.Middle
+				title.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+				return title.Layout(gtx)
+			})
+		}),
 		layout.Rigid(
 			func(gtx C) D {
 				margins := layout.Inset{
@@ -179,6 +183,7 @@ func startMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 			},
 		),
 	)
+
 }
 func emptyLayoutDebug(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{
@@ -280,6 +285,29 @@ func personalizationMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 
 }
 
+func (gui *GUI) renderLeftTable(gtx layout.Context) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates, gui.theme)...)
+		}),
+	)
+}
+
+func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				title := material.H3(g.theme, "Select your ship positions")
+				title.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+				return title.Layout(gtx)
+			})
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
+		}),
+	)
+}
+
 func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	if g.showStartMenu {
 		return startMenu(gtx, g)
@@ -288,7 +316,7 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 		return personalizationMenu(gtx, g)
 	}
 	if g.showLeftTable {
-		return personalizationMenu(gtx, g)
+		return displayBoardSelectMenu(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }
