@@ -86,6 +86,8 @@ func handleTableClicks(gtx layout.Context, buttons [][]*widget.Clickable, labels
 		for y, btn := range buttons[i] {
 			for btn.Clicked(gtx) {
 				fmt.Printf("%s: %d\n", labels[i][y], states[i][y])
+				states[i][y] = Ship
+
 			}
 		}
 	}

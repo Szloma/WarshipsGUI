@@ -85,8 +85,14 @@ func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *m
 				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 255, A: 255}
 
 			case Ship:
+				btnWidget.Background = color.NRGBA{R: 100, G: 0, B: 0, A: 255}
+			case Hit:
 				btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+
+			case Miss:
+				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 			}
+
 			btnWidget.Inset = layout.UniformInset(unit.Dp(5))
 			return layout.UniformInset(unit.Dp(1)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Min.X = int(gtx.Metric.DpToSp(size))
