@@ -37,6 +37,9 @@ type GUI struct {
 	discardButton             *widget.Clickable
 	nickname                  *widget.Editor
 	profileDescription        *widget.Editor
+	acceptShipPositions       *widget.Clickable
+	discardShipPositions      *widget.Clickable
+	randomShipPositions       *widget.Clickable
 	showLeftTable             bool
 	showTables                bool
 	showPersonalization       bool
@@ -59,6 +62,9 @@ func NewGUI() *GUI {
 		discardButton:         new(widget.Clickable),
 		nickname:              new(widget.Editor),
 		profileDescription:    new(widget.Editor),
+		acceptShipPositions:   new(widget.Clickable),
+		discardShipPositions:  new(widget.Clickable),
+		randomShipPositions:   new(widget.Clickable),
 		leftShip:              20,
 		showLeftTable:         false,
 		showTables:            false,
@@ -155,6 +161,15 @@ func loop(w *app.Window, g *GUI) error {
 			if g.showLeftTable {
 				handleTableClicks(gtx, g)
 
+			}
+			if g.acceptShipPositions.Clicked(gtx) {
+				fmt.Printf("accepted ship positions")
+			}
+			if g.discardShipPositions.Clicked(gtx) {
+				fmt.Printf("discarded ship positions")
+			}
+			if g.randomShipPositions.Clicked(gtx) {
+				fmt.Printf("random ship positions")
 			}
 
 			Layout(gtx, g)
@@ -336,7 +351,60 @@ func (gui *GUI) renderLeftTable(gtx layout.Context) layout.Dimensions {
 	)
 }
 
-func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
+func displayBoardSelectMenuSubMenu(gtx layout.Context, g *GUI) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical, Spacing: layout.Spacing(layout.Center)}.Layout(gtx,
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
+						btn := material.Button(g.theme, g.acceptShipPositions, "Accept")
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
+						btn := material.Button(g.theme, g.discardShipPositions, "Discard")
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
+						btn := material.Button(g.theme, g.randomShipPositions, "Random \n positions")
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+	)
+}
+
+func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -352,6 +420,18 @@ func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
+		}),
+	)
+}
+
+func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return displayBoardSelectMenuBoardMenu(gtx, g)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return displayBoardSelectMenuSubMenu(gtx, g)
 		}),
 	)
 }
