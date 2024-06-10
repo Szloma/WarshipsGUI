@@ -9,7 +9,9 @@ import (
 )
 
 func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
+	return layout.Flex{Axis: layout.Vertical,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				title := material.H3(g.theme, "Select your ship positions")
@@ -29,7 +31,9 @@ func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensio
 }
 
 func boardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
+	return layout.Flex{Axis: layout.Horizontal,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly}.Layout(gtx,
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return displayBoardSelectMenuBoardMenu(gtx, g)
@@ -41,7 +45,11 @@ func boardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 }
 
 func boardSelectMenuButtons(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical, Spacing: layout.Spacing(layout.Center)}.Layout(gtx,
+	return layout.Flex{
+		Axis:      layout.Vertical,
+		Alignment: layout.Alignment(layout.E),
+		Spacing:   layout.SpaceEvenly,
+	}.Layout(gtx,
 		layout.Rigid(
 			func(gtx C) D {
 				margins := layout.Inset{

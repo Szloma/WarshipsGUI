@@ -11,8 +11,9 @@ import (
 
 func startMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{
-		Axis:    layout.Vertical,
-		Spacing: layout.SpaceStart,
+		Axis:      layout.Vertical,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly,
 	}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {

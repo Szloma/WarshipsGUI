@@ -10,7 +10,10 @@ import (
 )
 
 func displayPlayerAndEnemyBoardInside(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Axis(layout.Center), Spacing: layout.SpaceEvenly}.Layout(gtx,
+	return layout.Flex{
+		Axis:      layout.Vertical,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			timerText := fmt.Sprintf("%d", g.timeLeft)
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

@@ -49,6 +49,7 @@ type GUI struct {
 	showPersonalization        bool
 	showStartMenu              bool
 	inGame                     bool
+	showLoadingMenu            bool
 	selectionIincidatorState   [20]int
 	leftShip                   int
 	selectionIndicatorButtons  []*widget.Clickable
@@ -79,6 +80,7 @@ func NewGUI() *GUI {
 		backShipPositions:          new(widget.Clickable),
 		abandonButton:              new(widget.Clickable),
 		leftShip:                   20,
+		showLoadingMenu:            false,
 		youLoseScreen:              false,
 		inGame:                     false,
 		displayPlayerAndEnemyBoard: false,
@@ -193,6 +195,9 @@ func loop(w *app.Window, g *GUI) error {
 				fmt.Printf("discarded ship positions")
 			}
 			if g.randomShipPositions.Clicked(gtx) {
+				g.showShipSetUpMenu = false
+				//tmp for testing
+				g.showLoadingMenu = true
 				fmt.Printf("random ship positions")
 			}
 			if g.backShipPositions.Clicked(gtx) {
@@ -243,7 +248,9 @@ func emptyLayoutDebug(gtx layout.Context, g *GUI) layout.Dimensions {
 }
 
 func displayEnemyNameAndDescription(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
+	return layout.Flex{Axis: layout.Vertical,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			timerText := fmt.Sprintf("Enemy Name: %s", g.enemyName)
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -275,6 +282,9 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	}
 	if g.displayPlayerAndEnemyBoard {
 		return displayPlayerAndEnemyBoard(gtx, g)
+	}
+	if g.showLoadingMenu {
+		return loadingMenu(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }
