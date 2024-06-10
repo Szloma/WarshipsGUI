@@ -47,6 +47,7 @@ type GUI struct {
 	showTables                 bool
 	showPersonalization        bool
 	showStartMenu              bool
+	inGame                     bool
 	selectionIincidatorState   [20]int
 	leftShip                   int
 	selectionIndicatorButtons  []*widget.Clickable
@@ -56,6 +57,7 @@ type GUI struct {
 	rightTableButtons          [][]*widget.Clickable
 	rightTableLabels           [][]string
 	rightTableStates           [][]int
+	timeLeft                   int
 }
 
 func NewGUI() *GUI {
@@ -73,18 +75,19 @@ func NewGUI() *GUI {
 		randomShipPositions:        new(widget.Clickable),
 		backShipPositions:          new(widget.Clickable),
 		leftShip:                   20,
+		inGame:                     false,
 		displayPlayerAndEnemyBoard: false,
 		showShipSetUpMenu:          false,
 		showLeftTable:              false,
 		showTables:                 false,
 		showPersonalization:        false,
 		showStartMenu:              true,
+		timeLeft:                   60,
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.rightTableButtons, gui.rightTableLabels, gui.rightTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
 	gui.selectionIincidatorState = setSelectionIndidatorState(gui.leftShip)
-
 	return gui
 }
 
@@ -175,6 +178,7 @@ func loop(w *app.Window, g *GUI) error {
 			if g.acceptShipPositions.Clicked(gtx) {
 				g.showShipSetUpMenu = false
 				g.displayPlayerAndEnemyBoard = true
+				g.inGame = true
 				fmt.Printf("accepted ship positions")
 			}
 			if g.discardShipPositions.Clicked(gtx) {
@@ -187,6 +191,12 @@ func loop(w *app.Window, g *GUI) error {
 			if g.backShipPositions.Clicked(gtx) {
 				g.showStartMenu = true
 				g.displayPlayerAndEnemyBoard = false
+			}
+			if g.inGame {
+				//time.Sleep(time.Second)
+				// to bddzie z requestu, nie ma co robic timera
+				print("game in progress")
+				//g.timeLeft -= 1
 			}
 
 			Layout(gtx, g)
@@ -473,6 +483,14 @@ func displayPlayerAndEnemyBoard(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			timerText := fmt.Sprintf("Time left: %d seconds", g.timeLeft)
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.H4(g.theme, timerText).Layout(gtx)
+				})
+			})
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.rightTableButtons, g.rightTableLabels, g.rightTableStates, g.theme)...)
