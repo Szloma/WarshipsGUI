@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 	"os"
 
@@ -41,6 +40,8 @@ type GUI struct {
 	backShipPositions          *widget.Clickable
 	discardShipPositions       *widget.Clickable
 	randomShipPositions        *widget.Clickable
+	abandonButton              *widget.Clickable
+	youLoseScreen              bool
 	displayPlayerAndEnemyBoard bool
 	showShipSetUpMenu          bool
 	showLeftTable              bool
@@ -58,6 +59,8 @@ type GUI struct {
 	rightTableLabels           [][]string
 	rightTableStates           [][]int
 	timeLeft                   int
+	enemyName                  string
+	enemyDescription           string
 }
 
 func NewGUI() *GUI {
@@ -74,7 +77,9 @@ func NewGUI() *GUI {
 		discardShipPositions:       new(widget.Clickable),
 		randomShipPositions:        new(widget.Clickable),
 		backShipPositions:          new(widget.Clickable),
+		abandonButton:              new(widget.Clickable),
 		leftShip:                   20,
+		youLoseScreen:              false,
 		inGame:                     false,
 		displayPlayerAndEnemyBoard: false,
 		showShipSetUpMenu:          false,
@@ -83,6 +88,8 @@ func NewGUI() *GUI {
 		showPersonalization:        false,
 		showStartMenu:              true,
 		timeLeft:                   60,
+		enemyName:                  "Janusz",
+		enemyDescription:           "aaa",
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.rightTableButtons, gui.rightTableLabels, gui.rightTableStates = createTable()
@@ -192,6 +199,12 @@ func loop(w *app.Window, g *GUI) error {
 				g.showStartMenu = true
 				g.displayPlayerAndEnemyBoard = false
 			}
+
+			if g.abandonButton.Clicked(gtx) {
+				g.displayPlayerAndEnemyBoard = false
+				g.showStartMenu = true
+			}
+
 			if g.inGame {
 				//time.Sleep(time.Second)
 				// to bddzie z requestu, nie ma co robic timera
@@ -206,70 +219,6 @@ func loop(w *app.Window, g *GUI) error {
 	}
 }
 
-func startMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{
-		Axis:    layout.Vertical,
-		Spacing: layout.SpaceStart,
-	}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				title := material.H1(g.theme, "Gigawarships")
-				title.Alignment = text.Middle
-				title.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-				return title.Layout(gtx)
-			})
-		}),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.startButton, "Start")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		), layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.personalizationButton, "Personalisation")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.exitButton, "exit")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-	)
-
-}
 func emptyLayoutDebug(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{
 		Axis:    layout.Vertical,
@@ -293,199 +242,10 @@ func emptyLayoutDebug(gtx layout.Context, g *GUI) layout.Dimensions {
 		))
 }
 
-func personalizationMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{
-		Axis:    layout.Vertical,
-		Spacing: layout.SpaceStart,
-	}.Layout(gtx,
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						return layout.Center.Layout(gtx,
-							func(gtx C) D {
-								return material.Editor(g.theme, g.nickname, "Nickname").Layout(gtx)
-							})
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						return layout.Center.Layout(gtx,
-							func(gtx C) D {
-								return material.Editor(g.theme, g.profileDescription, "Profile Description").Layout(gtx)
-							})
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.acceptButton, "Accept")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(25),
-					Bottom: unit.Dp(25),
-					Right:  unit.Dp(35),
-					Left:   unit.Dp(35),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.discardButton, "Discard")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-	)
-
-}
-
-func (gui *GUI) renderLeftTable(gtx layout.Context) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates, gui.theme)...)
-		}),
-	)
-}
-
-func displayBoardSelectMenuSubMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical, Spacing: layout.Spacing(layout.Center)}.Layout(gtx,
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(10),
-					Bottom: unit.Dp(10),
-					Right:  unit.Dp(10),
-					Left:   unit.Dp(10),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.acceptShipPositions, "Accept")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(10),
-					Bottom: unit.Dp(10),
-					Right:  unit.Dp(10),
-					Left:   unit.Dp(10),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.discardShipPositions, "Discard")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(10),
-					Bottom: unit.Dp(10),
-					Right:  unit.Dp(10),
-					Left:   unit.Dp(10),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.randomShipPositions, "Random \n positions")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-		layout.Rigid(
-			func(gtx C) D {
-				margins := layout.Inset{
-					Top:    unit.Dp(10),
-					Bottom: unit.Dp(10),
-					Right:  unit.Dp(10),
-					Left:   unit.Dp(10),
-				}
-				return margins.Layout(gtx,
-					func(gtx C) D {
-						btn := material.Button(g.theme, g.backShipPositions, "back")
-						return btn.Layout(gtx)
-					},
-				)
-			},
-		),
-	)
-}
-
-func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensions {
+func displayEnemyNameAndDescription(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				title := material.H3(g.theme, "Select your ship positions")
-				title.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-				return title.Layout(gtx)
-			})
-		}),
-
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, slimButtonRow(g.selectionIndicatorButtons, g.theme, g.selectionIincidatorState)...)
-		}),
-
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
-		}),
-	)
-}
-
-func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
-
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return displayBoardSelectMenuBoardMenu(gtx, g)
-		}),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return displayBoardSelectMenuSubMenu(gtx, g)
-		}),
-	)
-}
-
-func displayPlayerAndEnemyBoard(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
-		}),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			timerText := fmt.Sprintf("Time left: %d seconds", g.timeLeft)
+			timerText := fmt.Sprintf("Enemy Name: %s", g.enemyName)
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return material.H4(g.theme, timerText).Layout(gtx)
@@ -493,10 +253,14 @@ func displayPlayerAndEnemyBoard(gtx layout.Context, g *GUI) layout.Dimensions {
 			})
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.rightTableButtons, g.rightTableLabels, g.rightTableStates, g.theme)...)
+			timerText := fmt.Sprintf("Enemy Description: %s", g.enemyDescription)
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.H6(g.theme, timerText).Layout(gtx)
+				})
+			})
 		}),
 	)
-
 }
 
 func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
@@ -507,7 +271,7 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 		return personalizationMenu(gtx, g)
 	}
 	if g.showShipSetUpMenu {
-		return displayBoardSelectMenu(gtx, g)
+		return boardSelectMenu(gtx, g)
 	}
 	if g.displayPlayerAndEnemyBoard {
 		return displayPlayerAndEnemyBoard(gtx, g)
