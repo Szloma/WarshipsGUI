@@ -41,6 +41,7 @@ type GUI struct {
 	discardShipPositions       *widget.Clickable
 	randomShipPositions        *widget.Clickable
 	abandonButton              *widget.Clickable
+	gameOverButton             *widget.Clickable
 	youLoseScreen              bool
 	displayPlayerAndEnemyBoard bool
 	showShipSetUpMenu          bool
@@ -50,6 +51,8 @@ type GUI struct {
 	showStartMenu              bool
 	inGame                     bool
 	showLoadingMenu            bool
+	showGameOver               bool
+	showGameWon                bool
 	selectionIincidatorState   [20]int
 	leftShip                   int
 	selectionIndicatorButtons  []*widget.Clickable
@@ -79,7 +82,10 @@ func NewGUI() *GUI {
 		randomShipPositions:        new(widget.Clickable),
 		backShipPositions:          new(widget.Clickable),
 		abandonButton:              new(widget.Clickable),
+		gameOverButton:             new(widget.Clickable),
 		leftShip:                   20,
+		showGameWon:                false,
+		showGameOver:               false,
 		showLoadingMenu:            false,
 		youLoseScreen:              false,
 		inGame:                     false,
@@ -285,6 +291,12 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	}
 	if g.showLoadingMenu {
 		return loadingMenu(gtx, g)
+	}
+	if g.showGameOver {
+		return gameOver(gtx, g)
+	}
+	if g.showGameWon {
+		return gameWon(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }
