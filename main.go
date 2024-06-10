@@ -48,11 +48,14 @@ type GUI struct {
 	showPersonalization        bool
 	showStartMenu              bool
 	selectionIincidatorState   [20]int
+	leftShip                   int
 	selectionIndicatorButtons  []*widget.Clickable
 	leftTableButtons           [][]*widget.Clickable
-	leftShip                   int
 	leftTableLabels            [][]string
 	leftTableStates            [][]int
+	rightTableButtons          [][]*widget.Clickable
+	rightTableLabels           [][]string
+	rightTableStates           [][]int
 }
 
 func NewGUI() *GUI {
@@ -78,6 +81,7 @@ func NewGUI() *GUI {
 		showStartMenu:              true,
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
+	gui.rightTableButtons, gui.rightTableLabels, gui.rightTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
 	gui.selectionIincidatorState = setSelectionIndidatorState(gui.leftShip)
 
@@ -466,9 +470,12 @@ func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 }
 
 func displayPlayerAndEnemyBoard(gtx layout.Context, g *GUI) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.rightTableButtons, g.rightTableLabels, g.rightTableStates, g.theme)...)
 		}),
 	)
 
