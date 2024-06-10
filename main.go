@@ -67,7 +67,7 @@ func NewGUI() *GUI {
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
-	gui.selectionIincidatorState = setSelectionIincidatorState(gui.leftShip)
+	gui.selectionIincidatorState = setSelectionIndidatorState(gui.leftShip)
 
 	return gui
 }
@@ -84,12 +84,31 @@ type (
 	D = layout.Dimensions
 )
 
-func handleTableClicks(gtx layout.Context, buttons [][]*widget.Clickable, labels [][]string, states [][]int) {
-	for i := range buttons {
-		for y, btn := range buttons[i] {
+func handleTableClicks(gtx layout.Context, g *GUI) {
+	for i := range g.leftTableButtons {
+		for y, btn := range g.leftTableButtons[i] {
 			for btn.Clicked(gtx) {
-				fmt.Printf("%s: %d\n", labels[i][y], states[i][y])
-				states[i][y] = Ship
+				fmt.Printf("%s: %d\n", g.leftTableLabels[i][y], g.leftTableStates[i][y])
+				//zwaluduj czy nowy stan był dobry
+				if g.leftShip > 0 {
+					if g.leftTableStates[i][y] == Ship {
+						g.leftShip += 1
+						g.leftTableStates[i][y] = Empty
+					}
+					if g.leftTableStates[i][y] == Empty {
+						g.leftShip -= 1
+						g.leftTableStates[i][y] = Ship
+					}
+					fmt.Printf("%d: ", g.leftShip)
+					g.selectionIincidatorState = setSelectionIndidatorState(g.leftShip)
+				}
+
+				//g.leftTableStates[i][y] = Ship
+
+				for s := range g.selectionIincidatorState {
+					fmt.Print(" ")
+					fmt.Print(g.selectionIincidatorState[s])
+				}
 
 			}
 		}
@@ -134,7 +153,8 @@ func loop(w *app.Window, g *GUI) error {
 			}
 
 			if g.showLeftTable {
-				handleTableClicks(gtx, g.leftTableButtons, g.leftTableLabels, g.leftTableStates)
+				handleTableClicks(gtx, g)
+
 			}
 
 			Layout(gtx, g)
