@@ -30,6 +30,17 @@ func createButtonRow() []*widget.Clickable {
 	return buttons
 }
 
+func createEmptyState(rows, cols int) [][]int {
+	state := make([][]int, rows)
+	for i := range state {
+		state[i] = make([]int, cols)
+		for j := range state[i] {
+			state[i][j] = 0
+		}
+	}
+	return state
+}
+
 func createTable() ([][]*widget.Clickable, [][]string, [][]int) {
 	buttons := make([][]*widget.Clickable, 10)
 	labels := make([][]string, 10)

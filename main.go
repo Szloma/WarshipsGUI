@@ -29,47 +29,53 @@ func main() {
 }
 
 type GUI struct {
-	theme                     *material.Theme
-	startButton               *widget.Clickable
-	exitButton                *widget.Clickable
-	personalizationButton     *widget.Clickable
-	acceptButton              *widget.Clickable
-	discardButton             *widget.Clickable
-	nickname                  *widget.Editor
-	profileDescription        *widget.Editor
-	acceptShipPositions       *widget.Clickable
-	discardShipPositions      *widget.Clickable
-	randomShipPositions       *widget.Clickable
-	showLeftTable             bool
-	showTables                bool
-	showPersonalization       bool
-	showStartMenu             bool
-	selectionIincidatorState  [20]int
-	selectionIndicatorButtons []*widget.Clickable
-	leftTableButtons          [][]*widget.Clickable
-	leftShip                  int
-	leftTableLabels           [][]string
-	leftTableStates           [][]int
+	theme                      *material.Theme
+	startButton                *widget.Clickable
+	exitButton                 *widget.Clickable
+	personalizationButton      *widget.Clickable
+	acceptButton               *widget.Clickable
+	discardButton              *widget.Clickable
+	nickname                   *widget.Editor
+	profileDescription         *widget.Editor
+	acceptShipPositions        *widget.Clickable
+	backShipPositions          *widget.Clickable
+	discardShipPositions       *widget.Clickable
+	randomShipPositions        *widget.Clickable
+	displayPlayerAndEnemyBoard bool
+	showShipSetUpMenu          bool
+	showLeftTable              bool
+	showTables                 bool
+	showPersonalization        bool
+	showStartMenu              bool
+	selectionIincidatorState   [20]int
+	selectionIndicatorButtons  []*widget.Clickable
+	leftTableButtons           [][]*widget.Clickable
+	leftShip                   int
+	leftTableLabels            [][]string
+	leftTableStates            [][]int
 }
 
 func NewGUI() *GUI {
 	gui := &GUI{
-		theme:                 material.NewTheme(),
-		startButton:           new(widget.Clickable),
-		exitButton:            new(widget.Clickable),
-		personalizationButton: new(widget.Clickable),
-		acceptButton:          new(widget.Clickable),
-		discardButton:         new(widget.Clickable),
-		nickname:              new(widget.Editor),
-		profileDescription:    new(widget.Editor),
-		acceptShipPositions:   new(widget.Clickable),
-		discardShipPositions:  new(widget.Clickable),
-		randomShipPositions:   new(widget.Clickable),
-		leftShip:              20,
-		showLeftTable:         false,
-		showTables:            false,
-		showPersonalization:   false,
-		showStartMenu:         true,
+		theme:                      material.NewTheme(),
+		startButton:                new(widget.Clickable),
+		exitButton:                 new(widget.Clickable),
+		personalizationButton:      new(widget.Clickable),
+		acceptButton:               new(widget.Clickable),
+		discardButton:              new(widget.Clickable),
+		nickname:                   new(widget.Editor),
+		profileDescription:         new(widget.Editor),
+		acceptShipPositions:        new(widget.Clickable),
+		discardShipPositions:       new(widget.Clickable),
+		randomShipPositions:        new(widget.Clickable),
+		backShipPositions:          new(widget.Clickable),
+		leftShip:                   20,
+		displayPlayerAndEnemyBoard: false,
+		showShipSetUpMenu:          false,
+		showLeftTable:              false,
+		showTables:                 false,
+		showPersonalization:        false,
+		showStartMenu:              true,
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
@@ -135,7 +141,7 @@ func loop(w *app.Window, g *GUI) error {
 			gtx := app.NewContext(&ops, e)
 			if g.startButton.Clicked(gtx) {
 				g.showStartMenu = false
-				g.showLeftTable = true
+				g.showShipSetUpMenu = true
 				fmt.Println("test")
 			}
 			if g.personalizationButton.Clicked(gtx) {
@@ -163,13 +169,20 @@ func loop(w *app.Window, g *GUI) error {
 
 			}
 			if g.acceptShipPositions.Clicked(gtx) {
+				g.showShipSetUpMenu = false
+				g.displayPlayerAndEnemyBoard = true
 				fmt.Printf("accepted ship positions")
 			}
 			if g.discardShipPositions.Clicked(gtx) {
+				g.leftTableStates = createEmptyState(10, 10)
 				fmt.Printf("discarded ship positions")
 			}
 			if g.randomShipPositions.Clicked(gtx) {
 				fmt.Printf("random ship positions")
+			}
+			if g.backShipPositions.Clicked(gtx) {
+				g.showStartMenu = true
+				g.displayPlayerAndEnemyBoard = false
 			}
 
 			Layout(gtx, g)
@@ -401,6 +414,22 @@ func displayBoardSelectMenuSubMenu(gtx layout.Context, g *GUI) layout.Dimensions
 				)
 			},
 		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
+						btn := material.Button(g.theme, g.backShipPositions, "back")
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
 	)
 }
 
@@ -436,6 +465,15 @@ func displayBoardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 	)
 }
 
+func displayPlayerAndEnemyBoard(gtx layout.Context, g *GUI) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceEvenly}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme)...)
+		}),
+	)
+
+}
+
 func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	if g.showStartMenu {
 		return startMenu(gtx, g)
@@ -443,8 +481,11 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	if g.showPersonalization {
 		return personalizationMenu(gtx, g)
 	}
-	if g.showLeftTable {
+	if g.showShipSetUpMenu {
 		return displayBoardSelectMenu(gtx, g)
+	}
+	if g.displayPlayerAndEnemyBoard {
+		return displayPlayerAndEnemyBoard(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }
