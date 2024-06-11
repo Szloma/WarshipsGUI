@@ -62,6 +62,7 @@ type GUI struct {
 	rightTableButtons          [][]*widget.Clickable
 	rightTableLabels           [][]string
 	rightTableStates           [][]int
+	accuracy                   float64
 	timeLeft                   int
 	enemyName                  string
 	enemyDescription           string
@@ -96,6 +97,7 @@ func NewGUI() *GUI {
 		showPersonalization:        false,
 		showStartMenu:              true,
 		timeLeft:                   60,
+		accuracy:                   0.0,
 		enemyName:                  "Janusz",
 		enemyDescription:           "aaa",
 	}

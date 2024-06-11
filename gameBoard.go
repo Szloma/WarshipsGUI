@@ -15,7 +15,15 @@ func displayPlayerAndEnemyBoardInside(gtx layout.Context, g *GUI) layout.Dimensi
 		Alignment: layout.Middle,
 		Spacing:   layout.SpaceEvenly}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			timerText := fmt.Sprintf("%d", g.timeLeft)
+			timerText := fmt.Sprintf("time\n%d", g.timeLeft)
+			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.H4(g.theme, timerText).Layout(gtx)
+				})
+			})
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			timerText := fmt.Sprintf("accuracy\n%f", g.accuracy)
 			return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(unit.Dp(10)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return material.H4(g.theme, timerText).Layout(gtx)
