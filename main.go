@@ -42,6 +42,8 @@ type GUI struct {
 	randomShipPositions        *widget.Clickable
 	abandonButton              *widget.Clickable
 	gameOverButton             *widget.Clickable
+	showStatsButton            *widget.Clickable
+	backFromStatsButton        *widget.Clickable
 	youLoseScreen              bool
 	displayPlayerAndEnemyBoard bool
 	showShipSetUpMenu          bool
@@ -53,6 +55,8 @@ type GUI struct {
 	showLoadingMenu            bool
 	showGameOver               bool
 	showGameWon                bool
+	showLeaderBoards           bool
+	showStats                  bool
 	selectionIincidatorState   [20]int
 	leftShip                   int
 	selectionIndicatorButtons  []*widget.Clickable
@@ -84,7 +88,11 @@ func NewGUI() *GUI {
 		backShipPositions:          new(widget.Clickable),
 		abandonButton:              new(widget.Clickable),
 		gameOverButton:             new(widget.Clickable),
+		showStatsButton:            new(widget.Clickable),
+		backFromStatsButton:        new(widget.Clickable),
 		leftShip:                   20,
+		showStats:                  false,
+		showLeaderBoards:           false,
 		showGameWon:                false,
 		showGameOver:               false,
 		showLoadingMenu:            false,
@@ -167,6 +175,7 @@ func loop(w *app.Window, g *GUI) error {
 				g.showStartMenu = false
 				g.showShipSetUpMenu = true
 				fmt.Println("test")
+				InitGame()
 			}
 			if g.personalizationButton.Clicked(gtx) {
 				g.showStartMenu = false
@@ -183,6 +192,14 @@ func loop(w *app.Window, g *GUI) error {
 				g.showPersonalization = false
 				fmt.Printf("Nickname: %s\n", g.nickname.Text())
 				fmt.Printf("Description: %s\n", g.profileDescription.Text())
+			}
+			if g.backFromStatsButton.Clicked(gtx) {
+				g.showStartMenu = true
+				g.showStats = false
+			}
+			if g.showStatsButton.Clicked(gtx) {
+				g.showStartMenu = false
+				g.showStats = true
 			}
 			if g.exitButton.Clicked(gtx) {
 				os.Exit(0)
@@ -299,6 +316,9 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	}
 	if g.showGameWon {
 		return gameWon(gtx, g)
+	}
+	if g.showStats {
+		return showStatsMenu(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }

@@ -63,6 +63,23 @@ func startMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 					Right:  unit.Dp(35),
 					Left:   unit.Dp(35),
 				}
+
+				return margins.Layout(gtx,
+					func(gtx C) D {
+						btn := material.Button(g.theme, g.showStatsButton, "Statistics")
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(25),
+					Bottom: unit.Dp(25),
+					Right:  unit.Dp(35),
+					Left:   unit.Dp(35),
+				}
 				return margins.Layout(gtx,
 					func(gtx C) D {
 						btn := material.Button(g.theme, g.exitButton, "exit")
