@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 //zaimmplementować statystyke skuteczności strzałów
@@ -29,6 +31,7 @@ type GameProperties struct {
 	gameDescription *StatusResponse
 	opp_shots       []string
 	target_nick     string
+	wpBot           bool
 }
 
 var gameProperties GameProperties
@@ -170,27 +173,80 @@ func Board() ([]string, error) {
 }
 
 func customBoard() ([20]string, error) {
+
+	rand.Seed(time.Now().UnixNano())
+
+	// Generate a random integer between 0 and 3
+	randomInt := rand.Intn(4) // Intn(n) generates a random integer in [0, n)
+	if randomInt == 0 {
+		return [20]string{
+			"A1",
+			"A3",
+			"B9",
+			"C7",
+			"D1",
+			"D2",
+			"D3",
+			"D4",
+			"D7",
+			"E7",
+			"F1",
+			"F2",
+			"F3",
+			"F5",
+			"G5",
+			"G8",
+			"G9",
+			"I4",
+			"J4",
+			"J8",
+		}, nil
+	}
+	if randomInt == 1 {
+		return [20]string{
+			"H7",
+			"H8",
+			"H9",
+			"H10",
+			"D6",
+			"E6",
+			"F6",
+			"C2",
+			"C3",
+			"C4",
+			"A9",
+			"B9",
+			"G3",
+			"H3",
+			"H5",
+			"I5",
+			"E10",
+			"B7",
+			"A5",
+			"J1",
+		}, nil
+	}
 	return [20]string{
-		"A1",
-		"A3",
-		"B9",
-		"C7",
-		"D1",
-		"D2",
-		"D3",
-		"D4",
-		"D7",
-		"E7",
-		"F1",
-		"F2",
 		"F3",
+		"F4",
 		"F5",
-		"G5",
-		"G8",
-		"G9",
-		"I4",
-		"J4",
-		"J8",
+		"F6",
+		"A1",
+		"B1",
+		"C1",
+		"H8",
+		"H9",
+		"H10",
+		"D9",
+		"E9",
+		"I5",
+		"I6",
+		"B6",
+		"C6",
+		"H1",
+		"H3",
+		"A9",
+		"D4",
 	}, nil
 }
 
@@ -329,7 +385,7 @@ func InitGame() error {
 			"desc":        gameProperties.Description,
 			"nick":        gameProperties.Nick,
 			"target_nick": "",
-			"wpbot":       true,
+			"wpbot":       gameProperties.wpBot,
 		}
 		b, err := json.Marshal(GameBoard)
 		if err != nil {

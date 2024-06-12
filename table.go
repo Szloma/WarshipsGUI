@@ -21,6 +21,40 @@ func setSelectionIndidatorState(n int) [20]int {
 	}
 	return arr
 }
+func createLobbyButtons() ([]*widget.Clickable, [10]string) {
+	var arr [10]string
+	buttons := make([]*widget.Clickable, 10)
+	for i := range buttons {
+		arr[i] = ""
+		buttons[i] = new(widget.Clickable)
+	}
+	return buttons, arr
+}
+
+func lobbyButtonRow(buttons []*widget.Clickable, th *material.Theme, states [10]string) []layout.FlexChild {
+	var children []layout.FlexChild
+	for i, btn := range buttons {
+		btn := btn
+		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			size := unit.Dp(20)
+			if btn.Clicked(gtx) {
+				//states[i] = (states[i] + 1) % 4
+				fmt.Printf("Indicator %d: %d\n", i, states[i])
+			}
+			btnWidget := material.Button(th, btn, fmt.Sprintf("Ind %d", states[i]))
+
+			btnWidget.Inset = layout.UniformInset(unit.Dp(5))
+			return layout.UniformInset(unit.Dp(1)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				gtx.Constraints.Min.X = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Max.X = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Min.Y = int(gtx.Metric.DpToSp(size))
+				gtx.Constraints.Max.Y = int(gtx.Metric.DpToSp(size))
+				return btnWidget.Layout(gtx)
+			})
+		}))
+	}
+	return children
+}
 
 func createButtonRow() []*widget.Clickable {
 	buttons := make([]*widget.Clickable, 20)

@@ -47,6 +47,10 @@ type GUI struct {
 	backFromStatsButton        *widget.Clickable
 	botActiveButton            *widget.Clickable
 	yourTurnIndicatorButton    *widget.Clickable
+	refreshLobbyButton         *widget.Clickable
+	lobbyButtons               []*widget.Clickable
+	lobbyButtonsStates         [10]string
+	youWinScreen               bool
 	enemyDescriptionAvailable  bool
 	sessionActive              bool
 	lockRightTable             bool
@@ -103,6 +107,7 @@ func NewGUI() *GUI {
 		backFromStatsButton:        new(widget.Clickable),
 		botActiveButton:            new(widget.Clickable),
 		yourTurnIndicatorButton:    new(widget.Clickable),
+		refreshLobbyButton:         new(widget.Clickable),
 		enemyDescriptionAvailable:  false,
 		sessionActive:              true,
 		lockRightTable:             true,
@@ -110,6 +115,7 @@ func NewGUI() *GUI {
 		botActive:                  true,
 		leftShip:                   20,
 		shipsPlaced:                0,
+		youWinScreen:               false,
 		lockLeftTable:              false,
 		showStats:                  false,
 		showLeaderBoards:           false,
@@ -130,6 +136,7 @@ func NewGUI() *GUI {
 		enemyDescription:           "aaa",
 		timer:                      time.NewTicker(1 * time.Second),
 	}
+	gui.lobbyButtons, gui.lobbyButtonsStates = createLobbyButtons()
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.rightTableButtons, gui.rightTableLabels, gui.rightTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
@@ -226,7 +233,6 @@ func loop(w *app.Window, g *GUI) error {
 			if g.inGame {
 				if g.sessionActive {
 
-					//fmt.Printf("gamestatus")
 					gameProperties.gameStatus, _ = Status()
 
 					var previousTime = g.timeLeft
@@ -238,7 +244,6 @@ func loop(w *app.Window, g *GUI) error {
 
 					if gameProperties.gameStatus.Body["should_fire"] == true {
 						g.yourTurnIncidator = true
-						g.lockRightTable = false
 
 						if !g.enemyDescriptionAvailable {
 							gameProperties.gameDescription, _ = GameDescription()
@@ -254,7 +259,6 @@ func loop(w *app.Window, g *GUI) error {
 						g.enemyDescriptionAvailable = true
 
 					} else {
-						g.lockRightTable = true
 						g.yourTurnIncidator = false
 					}
 					var tmpOppShots = fmt.Sprintf("%s", gameProperties.gameStatus.Body["opp_shots"])
@@ -274,7 +278,17 @@ func loop(w *app.Window, g *GUI) error {
 
 					var gameStatus = fmt.Sprintf("%s", gameProperties.gameStatus.Body["game_status"])
 					if gameStatus == "lose" {
+
 						g.sessionActive = false
+						g.youLoseScreen = true
+						g.displayPlayerAndEnemyBoard = false
+						g.inGame = false
+					}
+					if gameStatus == "win" {
+						g.sessionActive = false
+						g.youLoseScreen = true
+						g.displayPlayerAndEnemyBoard = false
+						g.inGame = false
 					}
 
 					for i := range gameProperties.opp_shots {
@@ -352,9 +366,18 @@ func loop(w *app.Window, g *GUI) error {
 				g.displayPlayerAndEnemyBoard = true
 				g.inGame = true
 
+				if g.nickname.Text() == "" {
+					gameProperties.Nick = "BetonoJanusz"
+				}
+
 				gameProperties.Nick = g.nickname.Text()
 				gameProperties.Description = g.profileDescription.Text()
 				gameProperties.Board = getShipsFromTable(g)
+				if g.botActive {
+					gameProperties.wpBot = true
+				} else {
+					gameProperties.wpBot = false
+				}
 
 				fmt.Println("resultingtable")
 				for e := range gameProperties.Board {
@@ -406,6 +429,17 @@ func loop(w *app.Window, g *GUI) error {
 			if g.sessionActive == false {
 				g.displayPlayerAndEnemyBoard = false
 				g.showStartMenu = true
+			}
+			if g.refreshLobbyButton.Clicked(gtx) {
+
+				playerlist, err := PlayerList()
+				if err != nil {
+					panic(err)
+				}
+				for key, value := range playerlist.Body {
+
+					fmt.Printf("%s: %v\n", key, value)
+				}
 			}
 
 			Layout(gtx, g)
@@ -489,6 +523,12 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	}
 	if !g.sessionActive {
 		return sessionTerminated(gtx, g)
+	}
+	if g.youWinScreen {
+		return gameWon(gtx, g)
+	}
+	if g.youLoseScreen {
+		return gameOver(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }

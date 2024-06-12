@@ -30,6 +30,21 @@ func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensio
 	)
 }
 
+func displayLobby(gtx layout.Context, g *GUI) layout.Dimensions {
+	return layout.Flex{Axis: layout.Horizontal,
+		Alignment: layout.Middle,
+		Spacing:   layout.SpaceEvenly}.Layout(gtx,
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, slimButtonRow(g.selectionIndicatorButtons, g.theme, g.selectionIincidatorState)...)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, leftButtonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme, &g.lockLeftTable)...)
+		}),
+	)
+}
+
 func boardSelectMenu(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal,
 		Alignment: layout.Middle,
@@ -120,6 +135,24 @@ func boardSelectMenuButtons(gtx layout.Context, g *GUI) layout.Dimensions {
 							btn.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
 
 						}
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
+
+						btn := material.Button(g.theme, g.refreshLobbyButton, "Refresh\nLobby")
+
 						return btn.Layout(gtx)
 					},
 				)
