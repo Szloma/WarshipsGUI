@@ -25,7 +25,7 @@ func displayBoardSelectMenuBoardMenu(gtx layout.Context, g *GUI) layout.Dimensio
 		}),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme, &g.lockLeftTable, &g.lockRightTable)...)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, leftButtonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme, &g.lockLeftTable)...)
 		}),
 	)
 }
