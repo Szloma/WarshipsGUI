@@ -108,6 +108,33 @@ func boardSelectMenuButtons(gtx layout.Context, g *GUI) layout.Dimensions {
 				}
 				return margins.Layout(gtx,
 					func(gtx C) D {
+
+						btn := material.Button(g.theme, g.botActiveButton, "Bot")
+
+						btn.Background = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
+
+						if g.botActive {
+							btn.Background = color.NRGBA{R: 0, G: 255, B: 0, A: 255}
+
+						} else {
+							btn.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+
+						}
+						return btn.Layout(gtx)
+					},
+				)
+			},
+		),
+		layout.Rigid(
+			func(gtx C) D {
+				margins := layout.Inset{
+					Top:    unit.Dp(10),
+					Bottom: unit.Dp(10),
+					Right:  unit.Dp(10),
+					Left:   unit.Dp(10),
+				}
+				return margins.Layout(gtx,
+					func(gtx C) D {
 						btn := material.Button(g.theme, g.backShipPositions, "back")
 						return btn.Layout(gtx)
 					},

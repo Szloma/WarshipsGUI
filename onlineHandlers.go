@@ -25,6 +25,7 @@ type GameProperties struct {
 	Enemy        string
 	Nick         string
 	Description  string
+	gameStatus   *StatusResponse
 }
 
 var gameProperties GameProperties

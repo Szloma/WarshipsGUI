@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"gioui.org/app"
 	"gioui.org/font/gofont"
@@ -44,6 +45,11 @@ type GUI struct {
 	gameOverButton             *widget.Clickable
 	showStatsButton            *widget.Clickable
 	backFromStatsButton        *widget.Clickable
+	botActiveButton            *widget.Clickable
+	yourTurnIndicatorButton    *widget.Clickable
+	lockRightTable             bool
+	yourTurnIncidator          bool
+	botActive                  bool
 	lockLeftTable              bool
 	youLoseScreen              bool
 	displayPlayerAndEnemyBoard bool
@@ -69,9 +75,10 @@ type GUI struct {
 	rightTableLabels           [][]string
 	rightTableStates           [][]int
 	accuracy                   float64
-	timeLeft                   int
+	timeLeft                   string
 	enemyName                  string
 	enemyDescription           string
+	timer                      *time.Ticker
 }
 
 func NewGUI() *GUI {
@@ -92,6 +99,11 @@ func NewGUI() *GUI {
 		gameOverButton:             new(widget.Clickable),
 		showStatsButton:            new(widget.Clickable),
 		backFromStatsButton:        new(widget.Clickable),
+		botActiveButton:            new(widget.Clickable),
+		yourTurnIndicatorButton:    new(widget.Clickable),
+		lockRightTable:             false,
+		yourTurnIncidator:          false,
+		botActive:                  true,
 		leftShip:                   20,
 		shipsPlaced:                0,
 		lockLeftTable:              false,
@@ -108,15 +120,17 @@ func NewGUI() *GUI {
 		showTables:                 false,
 		showPersonalization:        false,
 		showStartMenu:              true,
-		timeLeft:                   60,
+		timeLeft:                   "60",
 		accuracy:                   0.0,
 		enemyName:                  "Janusz",
 		enemyDescription:           "aaa",
+		timer:                      time.NewTicker(1 * time.Second),
 	}
 	gui.leftTableButtons, gui.leftTableLabels, gui.leftTableStates = createTable()
 	gui.rightTableButtons, gui.rightTableLabels, gui.rightTableStates = createTable()
 	gui.selectionIndicatorButtons = createButtonRow()
 	gui.selectionIincidatorState = setSelectionIndidatorState(gui.leftShip)
+
 	return gui
 }
 
@@ -161,7 +175,7 @@ func getShipsFromTable(g *GUI) [20]string {
 	return board
 
 }
-func putShipsOnTable(g *GUI) {
+func putShipsOnLeftTable(g *GUI) {
 	for i := range g.leftTableLabels {
 		for y := range g.leftTableLabels[i] {
 			for a := range gameProperties.Board {
@@ -179,16 +193,36 @@ func loop(w *app.Window, g *GUI) error {
 
 	var ops op.Ops
 
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	go func() {
+		for range ticker.C {
+			if g.inGame {
+				fmt.Printf("gamestatus")
+				gameProperties.gameStatus, _ = Status()
+
+				g.timeLeft = fmt.Sprintf("%s", gameProperties.gameStatus.Body["timer"])
+				if gameProperties.gameStatus.Body["should_fire"] == true {
+					g.yourTurnIncidator = true
+				}
+				for key, value := range gameProperties.gameStatus.Body {
+
+					fmt.Printf("%s: %v\n", key, value)
+				}
+			}
+		}
+	}()
 	for {
 		switch e := w.Event().(type) {
 		case app.DestroyEvent:
 			return e.Err
+
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
 			if g.startButton.Clicked(gtx) {
 				g.showStartMenu = false
 				g.showShipSetUpMenu = true
-				fmt.Println("test")
 
 			}
 			if g.personalizationButton.Clicked(gtx) {
@@ -212,6 +246,7 @@ func loop(w *app.Window, g *GUI) error {
 				gameProperties.Description = ""
 				fmt.Printf("Nickname: %s\n", g.nickname.Text())
 				fmt.Printf("Description: %s\n", g.profileDescription.Text())
+
 			}
 			if g.backFromStatsButton.Clicked(gtx) {
 				g.showStartMenu = true
@@ -221,20 +256,18 @@ func loop(w *app.Window, g *GUI) error {
 				g.showStartMenu = false
 				g.showStats = true
 			}
+
 			if g.exitButton.Clicked(gtx) {
 				os.Exit(0)
 			}
-
-			if g.showLeftTable {
-				fmt.Print("nic")
-
-				//fmt.Print("g.lockleftable: ", g.lockLeftTable)
-				//if !g.lockLeftTable {
-
-				//	handleTableClicks(gtx, g)
-				//}
-
+			if g.botActiveButton.Clicked(gtx) {
+				if g.botActive {
+					g.botActive = false
+				} else {
+					g.botActive = true
+				}
 			}
+
 			if g.acceptShipPositions.Clicked(gtx) {
 				g.lockLeftTable = true
 				g.showShipSetUpMenu = false
@@ -242,14 +275,27 @@ func loop(w *app.Window, g *GUI) error {
 				g.inGame = true
 
 				gameProperties.Board = getShipsFromTable(g)
+
 				fmt.Println("resultingtable")
 				for e := range gameProperties.Board {
 					fmt.Println(gameProperties.Board[e])
 				}
 
+				err := InitGame()
+				if err != nil {
+					panic(err)
+				}
+				gameProperties.gameStatus, err = Status()
+				if err != nil {
+					panic(err)
+				}
+				fmt.Printf("gamestatus")
+				for key, value := range gameProperties.gameStatus.Body {
+					fmt.Printf("%s: %v\n", key, value)
+				}
+
 				fmt.Print("gameproperties board")
 				fmt.Print(gameProperties.Board)
-				//err := InitGame()
 				placeShipsOnLeftTable(gtx, g)
 				fmt.Printf("accepted ship positions")
 			}
@@ -259,8 +305,8 @@ func loop(w *app.Window, g *GUI) error {
 			}
 			if g.randomShipPositions.Clicked(gtx) {
 				gameProperties.Board, _ = customBoard()
-
-				putShipsOnTable(g)
+				g.leftTableStates = createEmptyState(10, 10)
+				putShipsOnLeftTable(g)
 				//g.showShipSetUpMenu = false
 				//tmp for testing
 				//g.showLoadingMenu = true
@@ -272,21 +318,22 @@ func loop(w *app.Window, g *GUI) error {
 			}
 
 			if g.abandonButton.Clicked(gtx) {
+				DeleteGame()
 				g.displayPlayerAndEnemyBoard = false
 				g.showStartMenu = true
 			}
 
 			if g.inGame {
-				//time.Sleep(time.Second)
-				// to bddzie z requestu, nie ma co robic timera
+
 				print("game in progress")
-				//g.timeLeft -= 1
+
 			}
 
 			Layout(gtx, g)
 
 			e.Frame(gtx.Ops)
 		}
+
 	}
 }
 
