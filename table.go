@@ -176,23 +176,26 @@ func rightButtonRow(buttons []*widget.Clickable, labels []string, states []int, 
 
 			if !*lock {
 				if btn.Clicked(gtx) {
+
 					var targetShot = labels[j]
-					fmt.Printf(targetShot)
-					fmt.Println("ognia")
-					fireStatus, err := Fire(targetShot)
-					if err == nil {
-						gameProperties.PlayerShoots = AddIfNotPresent(gameProperties.PlayerShoots, labels[j])
-					}
-					fmt.Println("fire! Status, %s", fireStatus)
-					if fireStatus == "miss" {
-						btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-						fmt.Println("miss")
-						states[j] = Miss
-					}
-					if fireStatus == "hit" {
-						btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
-						fmt.Println("hit")
-						states[j] = Hit
+					if !CheckIfPresent(gameProperties.PlayerShoots, targetShot) {
+						fmt.Printf(targetShot)
+						fmt.Println("ognia")
+						fireStatus, err := Fire(targetShot)
+						if err == nil {
+							gameProperties.PlayerShoots = AddIfNotPresent(gameProperties.PlayerShoots, labels[j])
+						}
+						fmt.Println("fire! Status, %s", fireStatus)
+						if fireStatus == "miss" {
+							btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+							fmt.Println("miss")
+							states[j] = Miss
+						}
+						if fireStatus == "hit" {
+							btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+							fmt.Println("hit")
+							states[j] = Hit
+						}
 					}
 
 				}

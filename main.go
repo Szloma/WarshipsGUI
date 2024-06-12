@@ -47,6 +47,8 @@ type GUI struct {
 	backFromStatsButton        *widget.Clickable
 	botActiveButton            *widget.Clickable
 	yourTurnIndicatorButton    *widget.Clickable
+	enemyDescriptionAvailable  bool
+	sessionActive              bool
 	lockRightTable             bool
 	yourTurnIncidator          bool
 	botActive                  bool
@@ -101,6 +103,8 @@ func NewGUI() *GUI {
 		backFromStatsButton:        new(widget.Clickable),
 		botActiveButton:            new(widget.Clickable),
 		yourTurnIndicatorButton:    new(widget.Clickable),
+		enemyDescriptionAvailable:  false,
+		sessionActive:              true,
 		lockRightTable:             true,
 		yourTurnIncidator:          false,
 		botActive:                  true,
@@ -220,25 +224,69 @@ func loop(w *app.Window, g *GUI) error {
 	go func() {
 		for range ticker.C {
 			if g.inGame {
-				fmt.Printf("gamestatus")
-				gameProperties.gameStatus, _ = Status()
+				if g.sessionActive {
 
-				g.timeLeft = fmt.Sprintf("%s", gameProperties.gameStatus.Body["timer"])
-				if gameProperties.gameStatus.Body["should_fire"] == true {
-					g.yourTurnIncidator = true
-				}
-				var tmpOppShots = fmt.Sprintf("%s", gameProperties.gameStatus.Body["opp_shots"])
-				gameProperties.opp_shots = stringToSlice(tmpOppShots)
+					//fmt.Printf("gamestatus")
+					gameProperties.gameStatus, _ = Status()
 
-				fmt.Println("opp shots:")
-				for i := range gameProperties.opp_shots {
-					fmt.Sprintf("%s,", gameProperties.opp_shots[i])
-				}
-				handlePlayerBoard(g)
-				for key, value := range gameProperties.gameStatus.Body {
+					var previousTime = g.timeLeft
+					if len(fmt.Sprintf("%.0f", gameProperties.gameStatus.Body["timer"])) > 2 {
+						g.timeLeft = previousTime
+					} else {
+						g.timeLeft = fmt.Sprintf("%.0f", gameProperties.gameStatus.Body["timer"])
+					}
 
-					fmt.Printf("%s: %v\n", key, value)
+					if gameProperties.gameStatus.Body["should_fire"] == true {
+						g.yourTurnIncidator = true
+						g.lockRightTable = false
+
+						if !g.enemyDescriptionAvailable {
+							gameProperties.gameDescription, _ = GameDescription()
+
+							g.enemyDescription = fmt.Sprintf("%s", gameProperties.gameDescription.Body["opp_desc"])
+							g.enemyName = fmt.Sprintf("%s", gameProperties.gameDescription.Body["opponent"])
+							fmt.Println("gamedescription")
+							for key, value := range gameProperties.gameStatus.Body {
+								fmt.Printf("gamedesc: %s: %v\n", key, value)
+							}
+
+						}
+						g.enemyDescriptionAvailable = true
+
+					} else {
+						g.lockRightTable = true
+						g.yourTurnIncidator = false
+					}
+					var tmpOppShots = fmt.Sprintf("%s", gameProperties.gameStatus.Body["opp_shots"])
+					gameProperties.opp_shots = stringToSlice(tmpOppShots)
+
+					fmt.Println(" opp shots:")
+
+					var sessionTerminate = fmt.Sprintf("%s", gameProperties.gameStatus.Body["message"])
+					if sessionTerminate == "session not found" {
+						g.sessionActive = false
+					}
+					fmt.Println(" player shots:")
+
+					for i := range gameProperties.PlayerShoots {
+						fmt.Sprintf("%s", gameProperties.PlayerShoots[i])
+					}
+
+					var gameStatus = fmt.Sprintf("%s", gameProperties.gameStatus.Body["game_status"])
+					if gameStatus == "lose" {
+						g.sessionActive = false
+					}
+
+					for i := range gameProperties.opp_shots {
+						fmt.Sprintf("%s,", gameProperties.opp_shots[i])
+					}
+					handlePlayerBoard(g)
+					for key, value := range gameProperties.gameStatus.Body {
+
+						fmt.Printf("%s: %v\n", key, value)
+					}
 				}
+
 			}
 		}
 	}()
@@ -304,6 +352,8 @@ func loop(w *app.Window, g *GUI) error {
 				g.displayPlayerAndEnemyBoard = true
 				g.inGame = true
 
+				gameProperties.Nick = g.nickname.Text()
+				gameProperties.Description = g.profileDescription.Text()
 				gameProperties.Board = getShipsFromTable(g)
 
 				fmt.Println("resultingtable")
@@ -319,7 +369,8 @@ func loop(w *app.Window, g *GUI) error {
 				if err != nil {
 					panic(err)
 				}
-				fmt.Printf("gamestatus")
+
+				fmt.Println("gamestatus")
 				for key, value := range gameProperties.gameStatus.Body {
 					fmt.Printf("%s: %v\n", key, value)
 				}
@@ -349,6 +400,10 @@ func loop(w *app.Window, g *GUI) error {
 
 			if g.abandonButton.Clicked(gtx) {
 				DeleteGame()
+				g.displayPlayerAndEnemyBoard = false
+				g.showStartMenu = true
+			}
+			if g.sessionActive == false {
 				g.displayPlayerAndEnemyBoard = false
 				g.showStartMenu = true
 			}
@@ -431,6 +486,9 @@ func Layout(gtx layout.Context, g *GUI) layout.Dimensions {
 	}
 	if g.showStats {
 		return showStatsMenu(gtx, g)
+	}
+	if !g.sessionActive {
+		return sessionTerminated(gtx, g)
 	}
 	return emptyLayoutDebug(gtx, g)
 }

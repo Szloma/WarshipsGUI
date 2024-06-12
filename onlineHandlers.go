@@ -19,14 +19,16 @@ import (
 //game properties
 
 type GameProperties struct {
-	Token        string
-	Board        [20]string
-	PlayerShoots []string
-	Enemy        string
-	Nick         string
-	Description  string
-	gameStatus   *StatusResponse
-	opp_shots    []string
+	Token           string
+	Board           [20]string
+	PlayerShoots    []string
+	Enemy           string
+	Nick            string
+	Description     string
+	gameStatus      *StatusResponse
+	gameDescription *StatusResponse
+	opp_shots       []string
+	target_nick     string
 }
 
 var gameProperties GameProperties
@@ -43,6 +45,10 @@ func AddIfNotPresent(slice []string, value string) []string {
 
 	}
 	return slice
+}
+func CheckIfPresent(slice []string, value string) bool {
+	return Contains(slice, value)
+
 }
 
 func Contains(slice []string, value string) bool {
