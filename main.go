@@ -146,6 +146,27 @@ type (
 	D = layout.Dimensions
 )
 
+func handlePlayerBoard(g *GUI) {
+	for i := range g.leftTableButtons {
+		for y := range g.leftTableButtons[i] {
+			//fmt.Printf("%s: %d\n", g.leftTableLabels[i][y], g.leftTableStates[i][y])
+			for a := range gameProperties.opp_shots {
+
+				if g.leftTableLabels[i][y] == gameProperties.opp_shots[a] {
+					if g.leftTableStates[i][y] == Empty {
+						g.leftTableStates[i][y] = Miss
+					}
+					if g.leftTableStates[i][y] == Ship {
+						g.leftTableStates[i][y] = Hit
+					}
+				}
+
+			}
+
+		}
+	}
+}
+
 func placeShipsOnLeftTable(gtx layout.Context, g *GUI) {
 	for i := range g.leftTableButtons {
 		for y := range g.leftTableButtons[i] {
@@ -193,7 +214,7 @@ func loop(w *app.Window, g *GUI) error {
 
 	var ops op.Ops
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 
 	go func() {
@@ -206,6 +227,14 @@ func loop(w *app.Window, g *GUI) error {
 				if gameProperties.gameStatus.Body["should_fire"] == true {
 					g.yourTurnIncidator = true
 				}
+				var tmpOppShots = fmt.Sprintf("%s", gameProperties.gameStatus.Body["opp_shots"])
+				gameProperties.opp_shots = stringToSlice(tmpOppShots)
+
+				fmt.Println("opp shots:")
+				for i := range gameProperties.opp_shots {
+					fmt.Sprintf("%s,", gameProperties.opp_shots[i])
+				}
+				handlePlayerBoard(g)
 				for key, value := range gameProperties.gameStatus.Body {
 
 					fmt.Printf("%s: %v\n", key, value)

@@ -26,6 +26,7 @@ type GameProperties struct {
 	Nick         string
 	Description  string
 	gameStatus   *StatusResponse
+	opp_shots    []string
 }
 
 var gameProperties GameProperties
@@ -34,8 +35,12 @@ var gameProperties GameProperties
 //utils
 
 func AddIfNotPresent(slice []string, value string) []string {
+
 	if !Contains(slice, value) {
-		slice = append(slice, value)
+		if isValidFormat(value) {
+			slice = append(slice, value)
+		}
+
 	}
 	return slice
 }

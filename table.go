@@ -183,7 +183,17 @@ func rightButtonRow(buttons []*widget.Clickable, labels []string, states []int, 
 					if err == nil {
 						gameProperties.PlayerShoots = AddIfNotPresent(gameProperties.PlayerShoots, labels[j])
 					}
-					fmt.Printf("fire! Status, %s", fireStatus)
+					fmt.Println("fire! Status, %s", fireStatus)
+					if fireStatus == "miss" {
+						btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+						fmt.Println("miss")
+						states[j] = Miss
+					}
+					if fireStatus == "hit" {
+						btnWidget.Background = color.NRGBA{R: 255, G: 0, B: 0, A: 255}
+						fmt.Println("hit")
+						states[j] = Hit
+					}
 
 				}
 			}
