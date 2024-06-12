@@ -44,6 +44,7 @@ type GUI struct {
 	gameOverButton             *widget.Clickable
 	showStatsButton            *widget.Clickable
 	backFromStatsButton        *widget.Clickable
+	lockLeftTable              bool
 	youLoseScreen              bool
 	displayPlayerAndEnemyBoard bool
 	showShipSetUpMenu          bool
@@ -59,6 +60,7 @@ type GUI struct {
 	showStats                  bool
 	selectionIincidatorState   [20]int
 	leftShip                   int
+	shipsPlaced                int
 	selectionIndicatorButtons  []*widget.Clickable
 	leftTableButtons           [][]*widget.Clickable
 	leftTableLabels            [][]string
@@ -91,6 +93,8 @@ func NewGUI() *GUI {
 		showStatsButton:            new(widget.Clickable),
 		backFromStatsButton:        new(widget.Clickable),
 		leftShip:                   20,
+		shipsPlaced:                0,
+		lockLeftTable:              false,
 		showStats:                  false,
 		showLeaderBoards:           false,
 		showGameWon:                false,
@@ -128,32 +132,42 @@ type (
 	D = layout.Dimensions
 )
 
-func handleTableClicks(gtx layout.Context, g *GUI) {
+func placeShipsOnLeftTable(gtx layout.Context, g *GUI) {
 	for i := range g.leftTableButtons {
-		for y, btn := range g.leftTableButtons[i] {
-			for btn.Clicked(gtx) {
-				fmt.Printf("%s: %d\n", g.leftTableLabels[i][y], g.leftTableStates[i][y])
-				//zwaluduj czy nowy stan był dobry
-				if g.leftShip > 0 {
-					if g.leftTableStates[i][y] == Ship {
-						g.leftShip += 1
-						g.leftTableStates[i][y] = Empty
-					}
-					if g.leftTableStates[i][y] == Empty {
-						g.leftShip -= 1
-						g.leftTableStates[i][y] = Ship
-					}
-					fmt.Printf("%d: ", g.leftShip)
-					g.selectionIincidatorState = setSelectionIndidatorState(g.leftShip)
+		for y := range g.leftTableButtons[i] {
+			//fmt.Printf("%s: %d\n", g.leftTableLabels[i][y], g.leftTableStates[i][y])
+			for a := range gameProperties.Board {
+				var tmpValue = g.leftTableLabels[i][y]
+				if gameProperties.Board[a] == tmpValue {
+					g.leftTableStates[i][y] = Ship
 				}
+			}
 
-				//g.leftTableStates[i][y] = Ship
+		}
+	}
+}
 
-				for s := range g.selectionIincidatorState {
-					fmt.Print(" ")
-					fmt.Print(g.selectionIincidatorState[s])
+func getShipsFromTable(g *GUI) [20]string {
+	var board [20]string
+	index := 0
+	for i := range g.leftTableLabels {
+		for y := range g.leftTableLabels[i] {
+			if g.leftTableStates[i][y] == 1 {
+				board[index] = g.leftTableLabels[i][y]
+				index += 1
+			}
+		}
+	}
+	return board
+
+}
+func putShipsOnTable(g *GUI) {
+	for i := range g.leftTableLabels {
+		for y := range g.leftTableLabels[i] {
+			for a := range gameProperties.Board {
+				if g.leftTableLabels[i][y] == gameProperties.Board[a] {
+					g.leftTableStates[i][y] = Ship
 				}
-
 			}
 		}
 	}
@@ -175,7 +189,7 @@ func loop(w *app.Window, g *GUI) error {
 				g.showStartMenu = false
 				g.showShipSetUpMenu = true
 				fmt.Println("test")
-				InitGame()
+
 			}
 			if g.personalizationButton.Clicked(gtx) {
 				g.showStartMenu = false
@@ -184,12 +198,18 @@ func loop(w *app.Window, g *GUI) error {
 			if g.acceptButton.Clicked(gtx) {
 				g.showStartMenu = true
 				g.showPersonalization = false
+
+				gameProperties.Nick = g.nickname.Text()
+				gameProperties.Description = g.nickname.Text()
+
 				fmt.Printf("Nickname: %s\n", g.nickname.Text())
 				fmt.Printf("Description: %s\n", g.profileDescription.Text())
 			}
 			if g.discardButton.Clicked(gtx) {
 				g.showStartMenu = true
 				g.showPersonalization = false
+				gameProperties.Nick = ""
+				gameProperties.Description = ""
 				fmt.Printf("Nickname: %s\n", g.nickname.Text())
 				fmt.Printf("Description: %s\n", g.profileDescription.Text())
 			}
@@ -206,13 +226,31 @@ func loop(w *app.Window, g *GUI) error {
 			}
 
 			if g.showLeftTable {
-				handleTableClicks(gtx, g)
+				fmt.Print("nic")
+
+				//fmt.Print("g.lockleftable: ", g.lockLeftTable)
+				//if !g.lockLeftTable {
+
+				//	handleTableClicks(gtx, g)
+				//}
 
 			}
 			if g.acceptShipPositions.Clicked(gtx) {
+				g.lockLeftTable = true
 				g.showShipSetUpMenu = false
 				g.displayPlayerAndEnemyBoard = true
 				g.inGame = true
+
+				gameProperties.Board = getShipsFromTable(g)
+				fmt.Println("resultingtable")
+				for e := range gameProperties.Board {
+					fmt.Println(gameProperties.Board[e])
+				}
+
+				fmt.Print("gameproperties board")
+				fmt.Print(gameProperties.Board)
+				//err := InitGame()
+				placeShipsOnLeftTable(gtx, g)
 				fmt.Printf("accepted ship positions")
 			}
 			if g.discardShipPositions.Clicked(gtx) {
@@ -220,9 +258,12 @@ func loop(w *app.Window, g *GUI) error {
 				fmt.Printf("discarded ship positions")
 			}
 			if g.randomShipPositions.Clicked(gtx) {
-				g.showShipSetUpMenu = false
+				gameProperties.Board, _ = customBoard()
+
+				putShipsOnTable(g)
+				//g.showShipSetUpMenu = false
 				//tmp for testing
-				g.showLoadingMenu = true
+				//g.showLoadingMenu = true
 				fmt.Printf("random ship positions")
 			}
 			if g.backShipPositions.Clicked(gtx) {

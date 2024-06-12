@@ -20,7 +20,7 @@ import (
 
 type GameProperties struct {
 	Token        string
-	Board        []string
+	Board        [20]string
 	PlayerShoots []string
 	Enemy        string
 	Nick         string
@@ -157,8 +157,8 @@ func Board() ([]string, error) {
 
 }
 
-func customBoard() ([]string, error) {
-	return []string{
+func customBoard() ([20]string, error) {
+	return [20]string{
 		"A1",
 		"A3",
 		"B9",

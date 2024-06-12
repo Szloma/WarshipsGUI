@@ -58,12 +58,12 @@ func createTable() ([][]*widget.Clickable, [][]string, [][]int) {
 	return buttons, labels, states
 }
 
-func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]int, th *material.Theme) []layout.FlexChild {
+func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]int, th *material.Theme, lock *bool) []layout.FlexChild {
 	var children []layout.FlexChild
 	for i := 0; i < 10; i++ {
 		i := i // capture range variable
 		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, buttonRow(buttons[i], labels[i], states[i], th)...)
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, buttonRow(buttons[i], labels[i], states[i], th, lock)...)
 		}))
 	}
 	return children
@@ -107,18 +107,24 @@ func slimButtonRow(buttons []*widget.Clickable, th *material.Theme, states [20]i
 	return children
 }
 
-func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *material.Theme) []layout.FlexChild {
+func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *material.Theme, lock *bool) []layout.FlexChild {
 	var children []layout.FlexChild
+
 	for j, btn := range buttons {
 		j := j
 		btn := btn
 		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			size := unit.Dp(50)
-			if btn.Clicked(gtx) {
-				states[j] = (states[j] + 1) % 2
-				fmt.Printf("%s: %d\n", labels[j], states[j])
-			}
+
 			btnWidget := material.Button(th, btn, labels[j])
+			if !*lock {
+				if btn.Clicked(gtx) {
+					states[j] = (states[j] + 1) % 2
+					fmt.Printf("%s: %d\n", labels[j], states[j])
+				}
+
+			}
+
 			switch states[j] {
 			case Empty:
 				btnWidget.Background = color.NRGBA{R: 0, G: 0, B: 255, A: 255}
