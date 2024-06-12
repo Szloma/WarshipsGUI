@@ -101,7 +101,7 @@ func NewGUI() *GUI {
 		backFromStatsButton:        new(widget.Clickable),
 		botActiveButton:            new(widget.Clickable),
 		yourTurnIndicatorButton:    new(widget.Clickable),
-		lockRightTable:             false,
+		lockRightTable:             true,
 		yourTurnIncidator:          false,
 		botActive:                  true,
 		leftShip:                   20,
@@ -270,6 +270,7 @@ func loop(w *app.Window, g *GUI) error {
 
 			if g.acceptShipPositions.Clicked(gtx) {
 				g.lockLeftTable = true
+				g.lockRightTable = false
 				g.showShipSetUpMenu = false
 				g.displayPlayerAndEnemyBoard = true
 				g.inGame = true
@@ -321,12 +322,6 @@ func loop(w *app.Window, g *GUI) error {
 				DeleteGame()
 				g.displayPlayerAndEnemyBoard = false
 				g.showStartMenu = true
-			}
-
-			if g.inGame {
-
-				print("game in progress")
-
 			}
 
 			Layout(gtx, g)

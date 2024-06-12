@@ -58,12 +58,12 @@ func createTable() ([][]*widget.Clickable, [][]string, [][]int) {
 	return buttons, labels, states
 }
 
-func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]int, th *material.Theme, lock *bool) []layout.FlexChild {
+func buttonWidgets(buttons [][]*widget.Clickable, labels [][]string, states [][]int, th *material.Theme, leftLock *bool, rightLock *bool) []layout.FlexChild {
 	var children []layout.FlexChild
 	for i := 0; i < 10; i++ {
 		i := i // capture range variable
 		children = append(children, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, buttonRow(buttons[i], labels[i], states[i], th, lock)...)
+			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx, buttonRow(buttons[i], labels[i], states[i], th, leftLock, rightLock)...)
 		}))
 	}
 	return children
@@ -107,7 +107,7 @@ func slimButtonRow(buttons []*widget.Clickable, th *material.Theme, states [20]i
 	return children
 }
 
-func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *material.Theme, lock *bool) []layout.FlexChild {
+func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *material.Theme, leftLock *bool, rightLock *bool) []layout.FlexChild {
 	var children []layout.FlexChild
 
 	for j, btn := range buttons {
@@ -117,12 +117,26 @@ func buttonRow(buttons []*widget.Clickable, labels []string, states []int, th *m
 			size := unit.Dp(50)
 
 			btnWidget := material.Button(th, btn, labels[j])
-			if !*lock {
+			if !*leftLock {
 				if btn.Clicked(gtx) {
 					states[j] = (states[j] + 1) % 2
+					print("leftTable")
 					fmt.Printf("%s: %d\n", labels[j], states[j])
 				}
 
+			}
+			if !*rightLock {
+				if btn.Clicked(gtx) {
+					var targetShot = labels[j]
+					fmt.Printf(targetShot)
+					fmt.Println("ognia")
+					fireStatus, err := Fire(targetShot)
+					if err == nil {
+						gameProperties.PlayerShoots = AddIfNotPresent(gameProperties.PlayerShoots, labels[j])
+					}
+					fmt.Printf("fire! Status, %s", fireStatus)
+
+				}
 			}
 
 			switch states[j] {

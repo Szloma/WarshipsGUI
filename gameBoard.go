@@ -76,13 +76,13 @@ func displayPlayerAndEnemyBoardInside(gtx layout.Context, g *GUI) layout.Dimensi
 func displayPlayerAndEnemyBoardWithoutLabels(gtx layout.Context, g *GUI) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.Spacing(layout.Baseline)}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme, &g.lockLeftTable)...)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.leftTableButtons, g.leftTableLabels, g.leftTableStates, g.theme, &g.lockLeftTable, &g.lockRightTable)...)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return displayPlayerAndEnemyBoardInside(gtx, g)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.rightTableButtons, g.rightTableLabels, g.rightTableStates, g.theme, &g.lockRightTable)...)
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, buttonWidgets(g.rightTableButtons, g.rightTableLabels, g.rightTableStates, g.theme, &g.lockRightTable, &g.lockRightTable)...)
 		}),
 	)
 }
